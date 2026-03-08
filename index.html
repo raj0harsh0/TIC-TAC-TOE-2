@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tic Tac Toe</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+background:#0a0a0a;
+color:white;
+text-align:center;
+font-family:'Orbitron', sans-serif;
+}
+
+button{
+box-sizing:border-box;
+}
+
+/* BUTTONS */
+
+.menu-btn{
+width:230px;
+height:50px;
+display:block;
+margin:10px auto;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+border:2px solid transparent;
+transition:0.2s;
+font-family:'Orbitron', sans-serif;
+}
+
+.mode-btn{
+background:#0b3d91;
+color:white;
+border-color:#1e90ff;
+}
+
+.diff-btn{
+background:#7a4a00;
+color:white;
+border-color:#ffa500;
+}
+
+.start-btn{
+background:#006400;
+color:white;
+border-color:#00ff7f;
+}
+
+.again-btn{
+background:#4b0082;
+color:white;
+border-color:#da70d6;
+}
+
+.home-btn{
+background:#8b0000;
+color:white;
+border-color:#ff4c4c;
+}
+
+.selected{
+box-shadow:0 0 12px white;
+}
+
+.hidden{
+display:none;
+}
+
+/* BOARD */
+
+#board{
+display:grid;
+grid-template-columns:repeat(3,110px);
+gap:10px;
+justify-content:center;
+margin-top:30px;
+}
+
+.cell{
+width:110px;
+height:110px;
+font-size:50px;
+font-weight:bold;
+background:#111;
+border:2px solid #00ffff;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+color:#00ffff;
+}
+
+/* RESULT SCREEN */
+
+#resultScreen{
+margin-top:30px;
+font-size:32px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Tic Tac Toe</h1>
+
+<div id="menu">
+
+<button class="menu-btn mode-btn" onclick="selectMode(this,'pvp')">
+Player vs Player
+</button>
+
+<button class="menu-btn mode-btn" onclick="selectMode(this,'ai')">
+Player vs AI
+</button>
+
+<div id="difficulty" class="hidden">
+
+<button class="menu-btn diff-btn" onclick="selectDifficulty(this,'easy')">
+Easy
+</button>
+
+<button class="menu-btn diff-btn" onclick="selectDifficulty(this,'medium')">
+Medium
+</button>
+
+<button class="menu-btn diff-btn" onclick="selectDifficulty(this,'hard')">
+Hard
+</button>
+
+</div>
+
+<button class="menu-btn start-btn" onclick="startGame()">
+Start Game
+</button>
+
+</div>
+
+<div id="game" class="hidden">
+
+<div id="board"></div>
+
+<div id="resultScreen" class="hidden"></div>
+
+<br>
+
+<button class="menu-btn again-btn hidden" id="playAgain" onclick="restart()">
+Play Again
+</button>
+
+<button class="menu-btn home-btn hidden" id="homeBtn" onclick="goHome()">
+Home
+</button>
+
+</div>
+
+<script>
+
+let board=[]
+let current="X"
+let mode=""
+let difficulty="easy"
+
+function selectMode(btn,m){
+
+mode=m
+
+document.querySelectorAll(".mode-btn")
+.forEach(b=>b.classList.remove("selected"))
+
+btn.classList.add("selected")
+
+if(m==="ai"){
+document.getElementById("difficulty").classList.remove("hidden")
+}else{
+document.getElementById("difficulty").classList.add("hidden")
+}
+
+}
+
+function selectDifficulty(btn,d){
+
+difficulty=d
+
+document.querySelectorAll(".diff-btn")
+.forEach(b=>b.classList.remove("selected"))
+
+btn.classList.add("selected")
+
+}
+
+function startGame(){
+
+if(mode===""){
+alert("Select game mode first")
+return
+}
+
+document.getElementById("menu").classList.add("hidden")
+document.getElementById("game").classList.remove("hidden")
+
+createBoard()
+
+}
+
+function createBoard(){
+
+board=["","","","","","","","",""]
+current="X"
+
+document.getElementById("resultScreen").classList.add("hidden")
+document.getElementById("playAgain").classList.add("hidden")
+document.getElementById("homeBtn").classList.add("hidden")
+
+const boardDiv=document.getElementById("board")
+boardDiv.innerHTML=""
+
+for(let i=0;i<9;i++){
+
+const cell=document.createElement("div")
+cell.className="cell"
+cell.onclick=()=>move(i)
+
+boardDiv.appendChild(cell)
+
+}
+
+}
+
+function move(i){
+
+if(board[i]!="") return
+
+board[i]=current
+render()
+
+if(checkWin(current)){
+endGame(current)
+return
+}
+
+if(board.every(c=>c!="")){
+endGame("draw")
+return
+}
+
+current=current==="X"?"O":"X"
+
+if(mode==="ai" && current==="O"){
+setTimeout(aiMove,300)
+}
+
+}
+
+function render(){
+
+document.querySelectorAll(".cell")
+.forEach((c,i)=>c.textContent=board[i])
+
+}
+
+function aiMove(){
+
+let moveIndex
+
+if(difficulty==="easy"){
+moveIndex=randomMove()
+}
+
+if(difficulty==="medium"){
+moveIndex=Math.random()<0.5?randomMove():bestMove()
+}
+
+if(difficulty==="hard"){
+moveIndex=bestMove()
+}
+
+move(moveIndex)
+
+}
+
+function randomMove(){
+
+let empty=board.map((v,i)=>v==""?i:null).filter(v=>v!==null)
+return empty[Math.floor(Math.random()*empty.length)]
+
+}
+
+function bestMove(){
+
+for(let i=0;i<9;i++){
+if(board[i]==""){
+board[i]="O"
+if(checkWin("O")){board[i]="";return i}
+board[i]=""
+}
+}
+
+for(let i=0;i<9;i++){
+if(board[i]==""){
+board[i]="X"
+if(checkWin("X")){board[i]="";return i}
+board[i]=""
+}
+}
+
+return randomMove()
+
+}
+
+function checkWin(p){
+
+const wins=[
+[0,1,2],[3,4,5],[6,7,8],
+[0,3,6],[1,4,7],[2,5,8],
+[0,4,8],[2,4,6]
+]
+
+return wins.some(c=>c.every(i=>board[i]==p))
+
+}
+
+function endGame(result){
+
+let text=""
+
+if(result==="draw"){
+text="Draw!"
+}
+
+else if(mode==="pvp"){
+text="Player "+result+" Wins!"
+}
+
+else{
+if(result==="X") text="You Win!"
+else text="AI Wins!"
+}
+
+document.getElementById("resultScreen").innerText=text
+document.getElementById("resultScreen").classList.remove("hidden")
+
+document.getElementById("playAgain").classList.remove("hidden")
+document.getElementById("homeBtn").classList.remove("hidden")
+
+}
+
+function restart(){
+createBoard()
+}
+
+function goHome(){
+
+document.getElementById("game").classList.add("hidden")
+document.getElementById("menu").classList.remove("hidden")
+
+}
+
+</script>
+
+</body>
+</html>
